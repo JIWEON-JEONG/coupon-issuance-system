@@ -1,0 +1,52 @@
+definitions:
+  model.CreateCampaignDto:
+    properties:
+      available_coupons:
+        type: integer
+      start_date_time:
+        type: string
+    required:
+    - available_coupons
+    - start_date_time
+    type: object
+info:
+  contact:
+    email: your@mail.com
+    name: API Support
+  description: This is an auto-generated API Docs.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: API
+  version: "1.0"
+paths:
+  /v1/campaigns:
+    post:
+      consumes:
+      - application/json
+      description: Create a new campaign.
+      parameters:
+      - description: availableCoupons
+        in: body
+        name: availableCoupons
+        required: true
+        schema:
+          type: integer
+      - description: startDateTime
+        in: body
+        name: startDateTime
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.CreateCampaignDto'
+      summary: create a new campaign
+      tags:
+      - Campaign
+swagger: "2.0"

@@ -1,0 +1,92 @@
+services:
+  mysql:
+    image: mysql:8.0.28
+    container_name: mysql_container
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: coupon_issuance_system
+      TZ: Asia/Seoul
+    platform: linux/x86_64
+    restart: always
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d  # DDL 스크립트 마운트
+
+  redis-master:
+    image: redis:7.0.5
+    container_name: redis_master
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass password
+    platform: linux/x86_64
+    restart: always
+    volumes:
+      - redis_master_data:/data
+    networks:
+      - redis-net
+
+  redis-replica-1:
+    image: redis:7.0.5
+    container_name: redis_replica_1
+    ports:
+      - "6380:6379"
+    command: redis-server --slaveof redis-master 6379 --requirepass password --masterauth password
+    depends_on:
+      - redis-master
+    platform: linux/x86_64
+    restart: always
+    volumes:
+      - redis_replica_1_data:/data
+    networks:
+      - redis-net
+
+  redis-sentinel-1:
+    image: redis:7.0.5
+    container_name: redis_sentinel_1
+    ports:
+      - "26379:26379"
+    command: redis-sentinel --sentinel monitor mymaster redis-master 6379 --sentinel auth-pass mymaster password --sentinel down-after-milliseconds mymaster 5000 --sentinel failover-timeout mymaster 60000 --sentinel parallel-syncs mymaster 1
+    depends_on:
+      - redis-master
+      - redis-replica-1
+    platform: linux/x86_64
+    restart: always
+    networks:
+      - redis-net
+
+  redis-sentinel-2:
+    image: redis:7.0.5
+    container_name: redis_sentinel_2
+    ports:
+      - "26380:26379"
+    command: redis-sentinel --sentinel monitor mymaster redis-master 6379 --sentinel auth-pass mymaster password --sentinel down-after-milliseconds mymaster 5000 --sentinel failover-timeout mymaster 60000 --sentinel parallel-syncs mymaster 1
+    depends_on:
+      - redis-master
+      - redis-replica-1
+    platform: linux/x86_64
+    restart: always
+    networks:
+      - redis-net
+
+  redis-sentinel-3:
+    image: redis:7.0.5
+    container_name: redis_sentinel_3
+    ports:
+      - "26381:26379"
+    command: redis-sentinel --sentinel monitor mymaster redis-master 6379 --sentinel auth-pass mymaster password --sentinel down-after-milliseconds mymaster 5000 --sentinel failover-timeout mymaster 60000 --sentinel parallel-syncs mymaster 1
+    depends_on:
+      - redis-master
+      - redis-replica-1
+    platform: linux/x86_64
+    restart: always
+    networks:
+      - redis-net
+
+networks:
+  redis-net:
+    driver: bridge
+
+volumes:
+  redis_master_data:
+  redis_replica_1_data:

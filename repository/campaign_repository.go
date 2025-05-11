@@ -1,0 +1,28 @@
+package repository
+
+import (
+	"campaign-coupon-system/domain"
+	"campaign-coupon-system/model"
+	"errors"
+	"github.com/go-redis/redis/v8"
+	"gorm.io/gorm"
+)
+
+type campaignRepository struct {
+	db    *gorm.DB
+	cache *redis.Client
+}
+
+func (c *campaignRepository) CreateCampaign(campaign model.Campaign) (model.Campaign, error) {
+	if err := c.db.Create(&campaign).Error; err != nil {
+		return model.Campaign{}, errors.New("internal server error: cannot create campaign") // 에러와 빈 캠페인 객체 반환
+	}
+	return campaign, nil
+}
+
+func NewCampaignRepository(db *gorm.DB, cache *redis.Client) domain.CampaignRepository {
+	return &campaignRepository{
+		db:    db,
+		cache: cache,
+	}
+}
