@@ -16,15 +16,49 @@ type couponRepository struct {
 	cache *redis.Client
 }
 
-func (c *couponRepository) FindByCampaignId(campaignId int) ([]model.Coupon, error) {
-	var coupons []model.Coupon
-	if err := c.db.Where("campaign_id = ?", campaignId).Find(&coupons).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return []model.Coupon{}, nil
+func (c *couponRepository) FindCouponDtoByCampaignIdOrNil(campaignId int) ([]model.CouponDto, error) {
+	var couponDtos []model.CouponDto
+	ctx := context.Background()
+
+	redisSetKey := fmt.Sprintf("campaign:%d:available_codes", campaignId)
+	hashKey := fmt.Sprintf("campaign:%d:coupon_data", campaignId)
+
+	sPopResult := c.cache.SPop(ctx, redisSetKey)
+	couponCode, err := sPopResult.Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
 		}
-		return nil, errors.New("internal server error: failed to find coupons by campaign ID")
+		return nil, fmt.Errorf("failed to pop coupon code: %w", err)
 	}
-	return coupons, nil
+
+	hGetResult := c.cache.HGet(ctx, hashKey, couponCode)
+	availableFromStr, err := hGetResult.Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, fmt.Errorf("available_from not found for coupon: %s", couponCode)
+		}
+		return nil, fmt.Errorf("failed to get available_from: %w", err)
+	}
+
+	availableFrom, err := time.Parse(time.RFC3339, availableFromStr)
+
+	couponDto := model.CouponDto{
+		CampaignID:    campaignId,
+		Code:          couponCode,
+		AvailableFrom: availableFrom,
+	}
+	couponDtos = append(couponDtos, couponDto)
+
+	return couponDtos, nil
+}
+
+func (c *couponRepository) InsertIssuedCoupon(coupon model.IssuedCoupon) error {
+	result := c.db.Create(&coupon)
+	if result.Error != nil {
+		return fmt.Errorf("failed to insert issued coupon: %w", result.Error)
+	}
+	return nil
 }
 
 func (c *couponRepository) Insert(ctx context.Context, tx *gorm.DB, coupons []model.Coupon) error {

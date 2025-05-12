@@ -5,23 +5,52 @@ import (
 	"context"
 	"fmt"
 	"gorm.io/gorm"
+	"log"
 	"math/rand"
+	"time"
 )
 
 type CouponService interface {
-	//특정 Campaign 에 해당하는 Coupon들을 모두 조회합니다.
-	GetByCampaignId(campaignId int) ([]model.Coupon, error)
+	////특정 Campaign 에 해당하는 Coupon들을 모두 조회합니다.
+	//GetByCampaignId(campaignId int) ([]model.Coupon, error)
 	//특정 Campaign 에 사용되는 유니크한 Coupon들을 발급하고 저장합니다.
 	GenerateCoupons(ctx context.Context, tx *gorm.DB, campaign model.Campaign) error
+	IssueCoupon(campaignId int, userId int) (string, error)
 }
 
 func NewCouponService(repository CouponRepository) CouponService {
 	return &couponService{repository: repository}
 }
 
-func (c *couponService) GetByCampaignId(campaignId int) ([]model.Coupon, error) {
-	coupons, err := c.repository.FindByCampaignId(campaignId)
-	return coupons, err
+func (c *couponService) IssueCoupon(campaignId int, userId int) (string, error) {
+	couponDtos, err := c.repository.FindCouponDtoByCampaignIdOrNil(campaignId)
+	if err != nil {
+		return "", fmt.Errorf("failed to find available coupon: %w", err)
+	}
+	if couponDtos == nil {
+		return "", nil
+	}
+
+	nowUTC := time.Now().UTC()
+	couponDto := couponDtos[0]
+
+	if couponDto.AvailableFrom.After(nowUTC) {
+		return "", fmt.Errorf("coupon is not yet available. Available from: %s", couponDto.AvailableFrom.String())
+	}
+
+	issuedCoupon := model.IssuedCoupon{
+		CampaignID:    campaignId,
+		Code:          couponDto.Code,
+		UserID:        userId,
+		AvailableFrom: couponDto.AvailableFrom,
+	}
+	// 비동기로 히스토리 저장
+	go func() {
+		if err := c.repository.InsertIssuedCoupon(issuedCoupon); err != nil {
+			log.Printf("Error saving coupon history (async): %+v, error=%v", issuedCoupon, err)
+		}
+	}()
+	return couponDto.Code, nil
 }
 
 const (

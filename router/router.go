@@ -10,5 +10,6 @@ func NewRouter(router *fiber.App, campaignController *controller.CampaignControl
 		return c.SendString("OK")
 	})
 	router.Post("/v1/campaigns", campaignController.CreateCampaign)
+	router.Post("/v1/campaigns/:campaignId/coupons/issue", campaignController.IssueCoupon)
 	return router
 }

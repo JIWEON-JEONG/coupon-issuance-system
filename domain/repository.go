@@ -11,6 +11,7 @@ type CampaignRepository interface {
 }
 
 type CouponRepository interface {
-	FindByCampaignId(campaignId int) ([]model.Coupon, error)
+	FindCouponDtoByCampaignIdOrNil(campaignId int) ([]model.CouponDto, error)
+	InsertIssuedCoupon(coupon model.IssuedCoupon) error
 	Insert(ctx context.Context, tx *gorm.DB, coupons []model.Coupon) error
 }
