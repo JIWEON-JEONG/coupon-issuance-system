@@ -34,7 +34,8 @@ func (c *couponService) IssueCoupon(campaignId int, userId int) (string, error) 
 	if couponDtos == nil {
 		return "", nil
 	}
-
+	log.Printf("couponDtos: %+v", couponDtos)
+	
 	nowUTC := time.Now().UTC()
 	couponDto := couponDtos[0]
 

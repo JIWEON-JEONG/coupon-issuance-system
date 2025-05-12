@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package campaign.v1;
+
+option go_package = "gen/campaign/v1;campaign_v1";
+
+message CampaignRequest {
+  int32 campaignId = 1;
+}
+
+message CampaignResponse {
+  uint32 campaignId = 1;
+  string startDateTime = 2;
+  repeated string issuedCodes = 3;
+}
+
+message CreateCampaignRequest {
+  int32 availableCouponCount = 1;
+  string startDateTime = 2;
+}
+
+message CreateCampaignResponse {
+  uint32 campaignId = 1;
+}
+
+message IssueCouponRequest {
+  int32 campaignId = 1;
+  int32 userId = 2;
+}
+
+message IssueCouponResponse {
+  string code = 1;
+}
+
+service CampaignService {
+  rpc GetCampaign(CampaignRequest) returns (CampaignResponse);
+  rpc CreateCampaign(CreateCampaignRequest) returns (CreateCampaignResponse);
+  rpc IssueCoupon(IssueCouponRequest) returns (IssueCouponResponse);
+}

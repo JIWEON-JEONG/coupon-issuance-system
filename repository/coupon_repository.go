@@ -19,10 +19,8 @@ type couponRepository struct {
 func (c *couponRepository) FindCouponDtoByCampaignIdOrNil(campaignId int) ([]model.CouponDto, error) {
 	var couponDtos []model.CouponDto
 	ctx := context.Background()
-
 	redisSetKey := fmt.Sprintf("campaign:%d:available_codes", campaignId)
 	hashKey := fmt.Sprintf("campaign:%d:coupon_data", campaignId)
-
 	sPopResult := c.cache.SPop(ctx, redisSetKey)
 	couponCode, err := sPopResult.Result()
 	if err != nil {
@@ -42,7 +40,6 @@ func (c *couponRepository) FindCouponDtoByCampaignIdOrNil(campaignId int) ([]mod
 	}
 
 	availableFrom, err := time.Parse(time.RFC3339, availableFromStr)
-
 	couponDto := model.CouponDto{
 		CampaignID:    campaignId,
 		Code:          couponCode,
@@ -84,7 +81,6 @@ func (c *couponRepository) Insert(ctx context.Context, tx *gorm.DB, coupons []mo
 	}
 
 	pipe := c.cache.Pipeline()
-	setKeys := make(map[string]struct{})
 
 	for _, coupon := range coupons {
 		redisSetKey := fmt.Sprintf("campaign:%d:available_codes", coupon.CampaignID)
@@ -92,15 +88,6 @@ func (c *couponRepository) Insert(ctx context.Context, tx *gorm.DB, coupons []mo
 
 		hashKey := fmt.Sprintf("campaign:%d:coupon_data", coupon.CampaignID)
 		pipe.HSet(ctx, hashKey, coupon.Code, coupon.AvailableFrom)
-
-		availableFrom := coupon.AvailableFrom
-		deletedAt := availableFrom.Add(24 * time.Hour)
-		ttl := time.Until(deletedAt.UTC())
-
-		if _, exists := setKeys[redisSetKey]; !exists {
-			pipe.Expire(ctx, redisSetKey, ttl)
-			setKeys[redisSetKey] = struct{}{}
-		}
 	}
 
 	if _, err := pipe.Exec(ctx); err != nil {
