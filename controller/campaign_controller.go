@@ -34,7 +34,7 @@ func (c *CampaignController) CreateCampaign(ctx *fiber.Ctx) error {
 		StartDateTime:    utcStartDateTime,
 	}
 
-	createdCampaign, err := c.campaignUseCase.CreateCampaign(campaign)
+	createdCampaign, err := c.campaignUseCase.CreateCampaign(ctx.UserContext(), campaign)
 	if err != nil {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}

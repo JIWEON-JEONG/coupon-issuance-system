@@ -29,8 +29,10 @@ func startServer(db *gorm.DB, cache *redis.Client) {
 	app := fiber.New()
 
 	campaignRepo := repository.NewCampaignRepository(db, cache)
+	couponRepo := repository.NewCouponRepository(db, cache)
 	campaignService := domain.NewCampaignService(campaignRepo)
-	campaignUseCase := usecase.NewCampaignUseCase(campaignService)
+	couponService := domain.NewCouponService(couponRepo)
+	campaignUseCase := usecase.NewCampaignUseCase(db, campaignService, couponService)
 	campaignController := controller.NewCampaignController(campaignUseCase)
 	routes := router.NewRouter(app, campaignController)
 

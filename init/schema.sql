@@ -12,11 +12,25 @@ CREATE TABLE IF NOT EXISTS `campaign` (
     PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- issued_coupon 테이블
+CREATE TABLE IF NOT EXISTS `issued_coupon` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `campaign_id` INT UNSIGNED NOT NULL,
+    `user_id` INT UNSIGNED NOT NULL DEFAULT 0,
+    `code` VARCHAR(10) NOT NULL UNIQUE,
+    `available_from` DATETIME(6) NOT NULL,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`campaign_id`) REFERENCES `campaign`(`id`) ON DELETE CASCADE,
+    KEY `idx_campaign_id` (`campaign_id`) USING BTREE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 -- coupon 테이블
 CREATE TABLE IF NOT EXISTS `coupon` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `campaign_id` INT UNSIGNED NOT NULL,
     `code` VARCHAR(10) NOT NULL UNIQUE,
+    `available_from` DATETIME(6) NOT NULL,
     `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     PRIMARY KEY (`id`),
     FOREIGN KEY (`campaign_id`) REFERENCES `campaign`(`id`) ON DELETE CASCADE,

@@ -6,7 +6,9 @@ import (
 
 func ConnectionRedis(config *Config) *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
-		Addr: config.RedisUrl,
+		Addr:     config.RedisUrl,
+		Password: "password",
+		DB:       0,
 	})
 	return rdb
 }
