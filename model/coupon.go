@@ -11,3 +11,7 @@ type Coupon struct {
 	CampaignID uint      `db:"campaign_id" json:"campaign_id"`
 	CreatedAt  time.Time `db:"created_at" json:"created_at"`
 }
+
+func (Coupon) TableName() string {
+	return "coupon"
+}

@@ -1,35 +1,25 @@
 package controller
 
 import (
-	"campaign-coupon-system/domain"
 	"campaign-coupon-system/model"
+	"campaign-coupon-system/usecase"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
 )
 
 type CampaignController struct {
-	campaignUseCase domain.CampaignUseCase
+	campaignUseCase usecase.CampaignUseCase
 }
 
-func NewCampaignController(campaignUseCase domain.CampaignUseCase) *CampaignController {
+func NewCampaignController(campaignUseCase usecase.CampaignUseCase) *CampaignController {
 	return &CampaignController{campaignUseCase: campaignUseCase}
 }
 
-// CreateCampaign method to create a new campaign.
-// @Description Create a new campaign.
-// @Summary create a new campaign
-// @Tags Campaign
-// @Accept json
-// @Produce json
-// @Param availableCoupons body integer true "availableCoupons"
-// @Param startDateTime body string true "startDateTime"
-// @Success 200 {object} model.CreateCampaignDto
-// @Router /v1/campaigns [post]
 func (c *CampaignController) CreateCampaign(ctx *fiber.Ctx) error {
-	var request model.CreateCampaignDto
+	var request CreateCampaignDto
 	if err := ctx.BodyParser(&request); err != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"message": "Invalid request body"})
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"message": "Invalid Request Body"})
 	}
 
 	validate := validator.New()

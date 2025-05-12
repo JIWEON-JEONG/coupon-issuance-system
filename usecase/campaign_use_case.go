@@ -5,15 +5,19 @@ import (
 	"campaign-coupon-system/model"
 )
 
+type CampaignUseCase interface {
+	CreateCampaign(campaign model.Campaign) (model.Campaign, error)
+}
+
 type campaignUseCase struct {
-	repository domain.CampaignRepository
+	service domain.CampaignService
 }
 
 func (c *campaignUseCase) CreateCampaign(campaign model.Campaign) (model.Campaign, error) {
-	campaign, err := c.repository.CreateCampaign(campaign)
+	campaign, err := c.service.CreateCampaign(campaign)
 	return campaign, err
 }
 
-func NewCampaignUseCase(repository domain.CampaignRepository) domain.CampaignUseCase {
-	return &campaignUseCase{repository: repository}
+func NewCampaignUseCase(service domain.CampaignService) CampaignUseCase {
+	return &campaignUseCase{service: service}
 }

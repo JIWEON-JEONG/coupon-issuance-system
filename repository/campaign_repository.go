@@ -13,7 +13,7 @@ type campaignRepository struct {
 	cache *redis.Client
 }
 
-func (c *campaignRepository) CreateCampaign(campaign model.Campaign) (model.Campaign, error) {
+func (c *campaignRepository) Save(campaign model.Campaign) (model.Campaign, error) {
 	if err := c.db.Create(&campaign).Error; err != nil {
 		return model.Campaign{}, errors.New("internal server error: cannot create campaign") // 에러와 빈 캠페인 객체 반환
 	}

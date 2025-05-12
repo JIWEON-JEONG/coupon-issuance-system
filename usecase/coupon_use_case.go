@@ -5,12 +5,16 @@ import (
 	"campaign-coupon-system/model"
 )
 
+type CouponUseCase interface {
+	GetByCampaignId(campaignId int) ([]model.Coupon, error)
+}
+
 type couponUseCase struct {
-	repository domain.CouponRepository
+	service domain.CouponService
 }
 
 func (c *couponUseCase) GetByCampaignId(campaignId int) ([]model.Coupon, error) {
-	coupons, err := c.repository.FindByCampaignId(campaignId)
+	coupons, err := c.service.GetByCampaignId(campaignId)
 	return coupons, err
 }
 
@@ -20,6 +24,6 @@ func (c *couponUseCase) CreateCoupons(campaignId int, amount int) error {
 	return nil
 }
 
-func NewCouponUseCase(repository domain.CouponRepository) domain.CouponUseCase {
-	return &couponUseCase{repository: repository}
+func NewCouponUseCase(service domain.CouponService) CouponUseCase {
+	return &couponUseCase{service: service}
 }
