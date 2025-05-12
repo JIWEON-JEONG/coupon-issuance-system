@@ -9,6 +9,7 @@ func NewRouter(router *fiber.App, campaignController *controller.CampaignControl
 	router.Get("/health-check", func(c *fiber.Ctx) error {
 		return c.SendString("OK")
 	})
+	router.Get("/v1/campaigns/:campaignId", campaignController.GetCampaign)
 	router.Post("/v1/campaigns", campaignController.CreateCampaign)
 	router.Post("/v1/campaigns/:campaignId/coupons/issue", campaignController.IssueCoupon)
 	return router

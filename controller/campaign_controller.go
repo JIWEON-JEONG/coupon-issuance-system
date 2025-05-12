@@ -17,6 +17,20 @@ func NewCampaignController(campaignUseCase usecase.CampaignUseCase) *CampaignCon
 	return &CampaignController{campaignUseCase: campaignUseCase}
 }
 
+func (c *CampaignController) GetCampaign(ctx *fiber.Ctx) error {
+	campaignIdStr := ctx.Params("campaignId")
+	campaignIdInt, err := strconv.Atoi(campaignIdStr)
+	if err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"message": "Invalid Campaign ID"})
+	}
+	campaignInfo, err := c.campaignUseCase.GetCampaignInfo(campaignIdInt)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
+	}
+
+	return ctx.Status(http.StatusOK).JSON(campaignInfo)
+}
+
 func (c *CampaignController) CreateCampaign(ctx *fiber.Ctx) error {
 	var request CreateCampaignDto
 	if err := ctx.BodyParser(&request); err != nil {
@@ -64,7 +78,7 @@ func (c *CampaignController) IssueCoupon(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
 	}
 	if code == "" {
-		return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"message": "쿠폰이 매진되었습니다."})
+		return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"message": "SoldOut Coupon."})
 	}
 	return ctx.Status(http.StatusOK).JSON(code)
 }

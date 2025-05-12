@@ -11,12 +11,44 @@ import (
 type CampaignUseCase interface {
 	CreateCampaign(ctx context.Context, campaign model.Campaign) (model.Campaign, error)
 	IssueCoupon(campaignId int, userId int) (string, error)
+	GetCampaignInfo(campaignId int) (model.CampaignInfoDto, error)
 }
 
 type campaignUseCase struct {
 	db              *gorm.DB
 	campaignService domain.CampaignService
 	couponService   domain.CouponService
+}
+
+func (u *campaignUseCase) GetCampaignInfo(campaignId int) (model.CampaignInfoDto, error) {
+	issuedCoupons, err := u.couponService.GetIssueCoupons(campaignId)
+	if err != nil {
+		return model.CampaignInfoDto{}, fmt.Errorf("failed to get issued coupons: %w", err)
+	}
+
+	if len(issuedCoupons) == 0 {
+		campaign, err := u.campaignService.GetCampaignById(campaignId)
+		if err != nil {
+			return model.CampaignInfoDto{}, fmt.Errorf("failed to get campaign: %w", err)
+		}
+
+		return model.CampaignInfoDto{
+			CampaignID:    uint(campaign.ID),
+			StartDateTime: campaign.StartDateTime,
+			IssuedCodes:   []string{},
+		}, nil
+	}
+
+	dto := model.CampaignInfoDto{
+		CampaignID:    uint(issuedCoupons[0].CampaignID),
+		StartDateTime: issuedCoupons[0].AvailableFrom,
+	}
+
+	for _, coupon := range issuedCoupons {
+		dto.IssuedCodes = append(dto.IssuedCodes, coupon.Code)
+	}
+
+	return dto, nil
 }
 
 func (u *campaignUseCase) CreateCampaign(ctx context.Context, campaign model.Campaign) (model.Campaign, error) {

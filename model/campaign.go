@@ -13,6 +13,12 @@ type Campaign struct {
 	StartDateTime    time.Time `db:"start_date_time" json:"startDateTime" validate:"required"`
 }
 
+type CampaignInfoDto struct {
+	CampaignID    uint      `json:"campaignId"`
+	IssuedCodes   []string  `json:"issuedCodes"`
+	StartDateTime time.Time `json:"startDateTime"`
+}
+
 func (Campaign) TableName() string {
 	return "campaign"
 }

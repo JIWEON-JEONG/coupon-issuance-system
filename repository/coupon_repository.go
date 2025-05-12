@@ -53,6 +53,18 @@ func (c *couponRepository) FindCouponDtoByCampaignIdOrNil(campaignId int) ([]mod
 	return couponDtos, nil
 }
 
+func (c *couponRepository) FindIssuedCouponByCampaignId(campaignId int) ([]model.IssuedCoupon, error) {
+	var issuedCoupons []model.IssuedCoupon
+	err := c.db.Where("campaign_id = ?", campaignId).Find(&issuedCoupons).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return []model.IssuedCoupon{}, nil
+		}
+		return nil, fmt.Errorf("failed to find issued coupons by campaign ID: %w", err)
+	}
+	return issuedCoupons, nil
+}
+
 func (c *couponRepository) InsertIssuedCoupon(coupon model.IssuedCoupon) error {
 	result := c.db.Create(&coupon)
 	if result.Error != nil {
