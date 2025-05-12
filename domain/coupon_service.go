@@ -31,6 +31,7 @@ func (c *couponService) IssueCoupon(campaignId int, userId int) (string, error) 
 	if err != nil {
 		return "", fmt.Errorf("failed to find available coupon: %w", err)
 	}
+	// coupon 이 모두 소진되었을 경우.
 	if couponDtos == nil {
 		return "", nil
 	}

@@ -25,7 +25,7 @@ func (u *campaignUseCase) GetCampaignInfo(campaignId int) (model.CampaignInfoDto
 	if err != nil {
 		return model.CampaignInfoDto{}, fmt.Errorf("failed to get issued coupons: %w", err)
 	}
-
+	
 	if len(issuedCoupons) == 0 {
 		campaign, err := u.campaignService.GetCampaignById(campaignId)
 		if err != nil {
